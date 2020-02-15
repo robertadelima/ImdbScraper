@@ -54,14 +54,9 @@ namespace ImdbScraper
             var title = "";
             var year = "";
             var fullPath = "";
-            List<string> listaReviews = new List<string>();;
-            StreamWriter streamWriter;
 
             foreach (var movieCode in movieCodes)
             {
-                // streamWriter = new StreamWriter(Path.Combine(docPath, movieCode + ".txt"));
-                // streamWriter.AutoFlush = true;
-                
                 url = urlbase + movieCode + "/reviews";
                 fullPath = docPath + movieCode + ".txt";
                 var httpClient = new HttpClient();
@@ -73,11 +68,9 @@ namespace ImdbScraper
                 title = htmlDocument.DocumentNode
                     .SelectNodes("//*[@id='main']/section/div[1]/div/div/h3/a").FirstOrDefault()?
                     .InnerText.Trim();
-                //streamWriter.WriteLine("Título: " + title);
 
                 year = htmlDocument.DocumentNode.SelectNodes("//*[@id='main']/section/div[1]/div/div/h3/span")
                     .FirstOrDefault()?.InnerText.Trim();
-                //streamWriter.WriteLine("Ano: " + year);
 
                 reviewNodes = htmlDocument.DocumentNode.SelectNodes("//*[@class='" + "text show-more__control" + "']")?
                                   .ToList() ?? Enumerable.Empty<HtmlNode>();
@@ -90,17 +83,13 @@ namespace ImdbScraper
                     imdbReview.Descricao = node.InnerText;
                     reviewsList.Add(imdbReview);
                 }
-                //listaReviews.Add(node.InnerText);
-                
+
                 ImdbFile Imdb = new ImdbFile(title, year, reviewsList);
 
                 string json = JsonConvert.SerializeObject(Imdb);
                 
                 File.WriteAllText(fullPath, json);
                 
-                // streamWriter.WriteLine(json);
-                // streamWriter.Close();
-                // streamWriter.Dispose();
             }
         }
     }
