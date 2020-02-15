@@ -13,19 +13,25 @@ namespace ImdbScraper
     {
         public static async Task Main(string[] args)
         {
+            //var tituloMaisAtual = 9006579;
+            //await SaveReviewsAndDataFromMovies(tituloMaisAtual);
             var titles = await GetMovieCodes();
             await SaveReviewsAndDataFromMovies(titles);
+            
         }
         
         public static async Task<IEnumerable<string>> GetMovieCodes()
         {
-            var itens = 100;
+            var itens = 9000;
             List<string> pageTitles = new List<string>();
             var url = "";
-            for (int i = 0; i < itens; i = i + 51)
+            var num = 0;
+            for (var i = 600; i < itens; i += 50)
             {
+                num = i + 1;
                 url = "https://www.imdb.com/search/title/?title_type=feature,tv_movie&release_date=2014-01-01,2020-02-11&start=" +
-                      i + "&view=simple";
+                      num + "&view=simple";
+                Console.WriteLine("Reading Imdb search page starting from: " + num);
                 var httpClient = new HttpClient();
                 var html = await httpClient.GetStringAsync(url);
 
@@ -44,10 +50,12 @@ namespace ImdbScraper
         }
 
         public static async Task SaveReviewsAndDataFromMovies(IEnumerable<string> movieCodes)
+        //public static async Task SaveReviewsAndDataFromMovies(int pTituloMaisAtual)
         {
             var folderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory()));
             var folder = @"\movies\";
             var docPath = folderPath + folder;
+            //var urlbase = "https://www.imdb.com/title/tt";
             var urlbase = "https://www.imdb.com/title/";
             var url = "";
             IEnumerable<HtmlNode> reviewNodes;
@@ -56,11 +64,21 @@ namespace ImdbScraper
             var fullPath = "";
 
             foreach (var movieCode in movieCodes)
+            //for(int movieCode = pTituloMaisAtual; movieCode > 0; movieCode--)
             {
                 url = urlbase + movieCode + "/reviews";
                 fullPath = docPath + movieCode + ".txt";
                 var httpClient = new HttpClient();
-                var html = await httpClient.GetStringAsync(url);
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB;     rv:1.9.2.13) Gecko/20101203 Firefox/3.6.13 (.NET CLR 3.5.30729)");
+                var html = "";
+                try
+                {
+                    html = await httpClient.GetStringAsync(url);
+                }
+                catch (Exception e)
+                {
+                    continue;
+                }
 
                 var htmlDocument = new HtmlDocument();
                 htmlDocument.LoadHtml(html);
