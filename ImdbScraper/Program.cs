@@ -13,11 +13,8 @@ namespace ImdbScraper
     {
         public static async Task Main(string[] args)
         {
-            //var tituloMaisAtual = 9006579;
-            //await SaveReviewsAndDataFromMovies(tituloMaisAtual);
             var titles = await GetMovieCodes();
             await SaveReviewsAndDataFromMovies(titles);
-            
         }
         
         public static async Task<IEnumerable<string>> GetMovieCodes()
@@ -50,12 +47,10 @@ namespace ImdbScraper
         }
 
         public static async Task SaveReviewsAndDataFromMovies(IEnumerable<string> movieCodes)
-        //public static async Task SaveReviewsAndDataFromMovies(int pTituloMaisAtual)
         {
             var folderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory()));
             var folder = @"\movies\";
             var docPath = folderPath + folder;
-            //var urlbase = "https://www.imdb.com/title/tt";
             var urlbase = "https://www.imdb.com/title/";
             var url = "";
             IEnumerable<HtmlNode> reviewNodes;
@@ -64,7 +59,6 @@ namespace ImdbScraper
             var fullPath = "";
 
             foreach (var movieCode in movieCodes)
-            //for(int movieCode = pTituloMaisAtual; movieCode > 0; movieCode--)
             {
                 url = urlbase + movieCode + "/reviews";
                 fullPath = docPath + movieCode + ".txt";
