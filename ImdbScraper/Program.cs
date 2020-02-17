@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -14,8 +15,9 @@ namespace ImdbScraper
     {
         public static async Task Main(string[] args)
         {
-            var threadsNum = 4;
-            var moviesNum = 400;
+            // Stopwatch stopwatch = Stopwatch.StartNew();
+            var threadsNum = 8;
+            var moviesNum = 8000;
 
             var titles = await GetMovieCodes(moviesNum);
 
@@ -25,9 +27,12 @@ namespace ImdbScraper
 
             for (int i = 0; i < trechos.Count-1; i++)
             { 
-                var partialMovieList = titles.GetRange(trechos[i], (moviesNum/threadsNum)-1);
+                var partialMovieList = titles.GetRange(trechos[i], (moviesNum/threadsNum));
                 new Thread(() => SaveReviewsAndDataFromMovies(partialMovieList)).Start();    
             }
+            // stopwatch.Stop();
+            // Console.WriteLine(moviesNum + " movie data saved in: ");
+            // Console.WriteLine(stopwatch.ElapsedMilliseconds);
         }
 
         public static async Task<List<string>> GetMovieCodes(int pMovieNum)
@@ -37,10 +42,10 @@ namespace ImdbScraper
             var num = 0;
             for (var i = 0; i < pMovieNum; i += 50)
             {
-                num = i + 1;
+                if(i != 0) num = i + 1;
                 url = "https://www.imdb.com/search/title/?title_type=feature,tv_movie&release_date=2014-01-01,2020-02-11&start=" +
                       num + "&view=simple";
-                Console.WriteLine("Reading Imdb search page starting from: " + num);
+                //Console.WriteLine("Reading Imdb search page starting from: " + num);
                 var httpClient = new HttpClient();
                 var html = await httpClient.GetStringAsync(url);
 
