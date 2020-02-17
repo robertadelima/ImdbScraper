@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -13,17 +14,28 @@ namespace ImdbScraper
     {
         public static async Task Main(string[] args)
         {
-            var titles = await GetMovieCodes();
-            await SaveReviewsAndDataFromMovies(titles);
+            var threadsNum = 4;
+            var moviesNum = 400;
+
+            var titles = await GetMovieCodes(moviesNum);
+
+            List<int> trechos = new List<int>();
+            for (int i = 0; i <= moviesNum; i+=(moviesNum/threadsNum))
+                trechos.Add(i);
+
+            for (int i = 0; i < trechos.Count-1; i++)
+            { 
+                var partialMovieList = titles.GetRange(trechos[i], (moviesNum/threadsNum)-1);
+                new Thread(() => SaveReviewsAndDataFromMovies(partialMovieList)).Start();    
+            }
         }
-        
-        public static async Task<IEnumerable<string>> GetMovieCodes()
+
+        public static async Task<List<string>> GetMovieCodes(int pMovieNum)
         {
-            var itens = 9000;
             List<string> pageTitles = new List<string>();
             var url = "";
             var num = 0;
-            for (var i = 600; i < itens; i += 50)
+            for (var i = 0; i < pMovieNum; i += 50)
             {
                 num = i + 1;
                 url = "https://www.imdb.com/search/title/?title_type=feature,tv_movie&release_date=2014-01-01,2020-02-11&start=" +
@@ -45,8 +57,8 @@ namespace ImdbScraper
             }
             return pageTitles;
         }
-
-        public static async Task SaveReviewsAndDataFromMovies(IEnumerable<string> movieCodes)
+        
+        public static void SaveReviewsAndDataFromMovies(IEnumerable<string> movieCodes)
         {
             var folderPath = Path.GetDirectoryName(Path.GetDirectoryName(System.IO.Directory.GetCurrentDirectory()));
             var folder = @"\movies\";
@@ -67,7 +79,7 @@ namespace ImdbScraper
                 var html = "";
                 try
                 {
-                    html = await httpClient.GetStringAsync(url);
+                    html = httpClient.GetStringAsync(url).Result;
                 }
                 catch (Exception e)
                 {
